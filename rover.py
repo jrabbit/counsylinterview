@@ -20,6 +20,7 @@ class Rover(object):
         # modify into list of pairs(also a list)
         # stacked listcomps a bit cleaner than another map/lambda
         self.pairs = [[int(n) for n in x.split(",")] for x in pairs]
+        self.possible_solutions = []
         self.soln = False
 
     def time(self, bytez):
@@ -88,7 +89,9 @@ class Rover(object):
             for item, x in enumerate(l):
                 sets[item] = set(xrange(x[0], x[1]))
             permutations = itertools.permutations(sets, 2)
-            print [x for x in test_sets(permutations, sets)]
+            results = [x for x in test_sets(permutations, sets)]
+            self.possible_solutions.append(results)
+            print results
             # self.soln = min(, key=lambda x: x['total'] )
             # print self.soln
             # self.soln = min([x for x in test_sets(permutations, sets)], key=lambda x: x['total'] )

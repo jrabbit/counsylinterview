@@ -56,6 +56,9 @@ class Rover(object):
         findcontiguous(s)
         # print self.used_pairs
         self.soln = self.compute(self.used_pairs)
+        x = {"total": self.compute(self.used_pairs), "pairs": self.used_pairs}
+        # print x
+        self.possible_solutions.append(x)
 
     def reverse_full(self):
         """Reversed procedure sorting in reverse finding the shortest path"""
@@ -92,7 +95,7 @@ class Rover(object):
             permutations = itertools.permutations(sets, 2)
             results = [x for x in test_sets(permutations, sets)]
             self.possible_solutions += results
-            # print results
+            # print "hello", results
             # self.soln = min(, key=lambda x: x['total'] )
             # print self.soln
             # self.soln = min([x for x in test_sets(permutations, sets)], key=lambda x: x['total'] )
@@ -123,9 +126,13 @@ class Rover(object):
     def naive_method(self):
         self.soln = self.compute(self.pairs)
     def try_both(self):
+        """Run both algorithms (forwards and reverse with sets)"""
         self.reverse_full()
-        self.is_fullset()
-        fastest = min(self.possible_solutions, key= lambda x: x['total'])
+        self.is_fullset(self.pairs)
+        # print self.possible_solutions
+        fastest = min(self.possible_solutions, key=lambda x: x['total'])
+        self.soln = fastest['total']
+        self.out()
 
 if __name__ == '__main__':
     r = Rover()
@@ -135,5 +142,4 @@ if __name__ == '__main__':
     # print r.compute(r.used_pairs)
     # r.out()
     # r.is_fullset(r.pairs)
-    r.reverse_full()
-    r.out()
+    r.try_both()

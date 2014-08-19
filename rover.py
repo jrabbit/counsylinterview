@@ -2,7 +2,7 @@ import sys
 import operator
 import copy
 import itertools
-from collections import namedtuple
+# from collections import namedtuple
 
 
 # Pair = namedtuple("Pair", ["first", "last"])
@@ -63,16 +63,21 @@ class Rover(object):
         s = sorted(self.pairs, key=lambda x: -x[1])
         self.processed_sets = []
         def test_sets(permutations, sets):
+            """take permutations and sets and combine them
+            test for coverage (e.g. 0 - N within the combined set."""
+            skip_list = []
             for i in permutations:
                 # unpack
                 # print sets[i[0]] ^ sets[i[1]]
                 x, y = sets[i[0]] , sets[i[1]]
-                print i[0], i[1]
-                f = sets[i[0]] ^ sets[i[1]]
-                if 0 in f and (self.numb_bytes - 1) in f:
+                print i
+                f = sets[i[0]] | sets[i[1]]
+                print 0 in f
+                print (0, self.numb_bytes)
+                if set(xrange(0, self.numb_bytes)).issubset(f):
                     a,b = min(x), max(x)+1
                     c,d = min(y), max(y)+1
-                    permutations.remove((y, x))
+                    skip_list.append((y, x))
                     yield {"total": self.compute([[a,b], [c,d]]), 
                             "pairs": [[a,b], [c,d]],
                             "group": i}
@@ -87,9 +92,7 @@ class Rover(object):
             # self.soln = min(, key=lambda x: x['total'] )
             # print self.soln
             # self.soln = min([x for x in test_sets(permutations, sets)], key=lambda x: x['total'] )
-
-                # self.compute()
-            # calculate if any combination contains 0,1999
+            # self.compute()
 
         def finddiscontiguous(s):
             """only looks for one level."""

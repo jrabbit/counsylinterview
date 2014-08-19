@@ -48,13 +48,13 @@ class Rover(object):
                 # print p[1]
                 if p[0] == self.current_match or p[1] == self.numb_bytes:
                     self.current_match = p[1]
-                    print s[i]
+                    # print s[i]
                     self.used_pairs.append(s[i])
                     s.pop(i)
                     findcontiguous(s)
 
         findcontiguous(s)
-        print self.used_pairs
+        # print self.used_pairs
         self.soln = self.compute(self.used_pairs)
 
     def reverse_full(self):
@@ -71,10 +71,11 @@ class Rover(object):
                 # unpack
                 # print sets[i[0]] ^ sets[i[1]]
                 x, y = sets[i[0]] , sets[i[1]]
-                print i
+                # print i
+                # union of the two sets
                 f = sets[i[0]] | sets[i[1]]
-                print 0 in f
-                print (0, self.numb_bytes)
+                # print 0 in f
+                # print (0, self.numb_bytes)
                 if set(xrange(0, self.numb_bytes)).issubset(f):
                     a,b = min(x), max(x)+1
                     c,d = min(y), max(y)+1
@@ -90,8 +91,8 @@ class Rover(object):
                 sets[item] = set(xrange(x[0], x[1]))
             permutations = itertools.permutations(sets, 2)
             results = [x for x in test_sets(permutations, sets)]
-            self.possible_solutions.append(results)
-            print results
+            self.possible_solutions += results
+            # print results
             # self.soln = min(, key=lambda x: x['total'] )
             # print self.soln
             # self.soln = min([x for x in test_sets(permutations, sets)], key=lambda x: x['total'] )
@@ -108,16 +109,23 @@ class Rover(object):
                     s.pop(i)
                     finddiscontiguous(s)
         finddiscontiguous(s)
-        print self.used_pairs
+        # print self.used_pairs
         contains_0 = [x for x in self.used_pairs if 0 in x]
         if len(contains_0) > 1:
             self.used_pairs.append([0,0])
-            print mk_set(self.used_pairs)
+            mk_set(self.used_pairs)
+            # pick a proposed solution based on time
+            fastest = min(self.possible_solutions, key= lambda x: x['total'])
+            self.soln = fastest['total']
         else:
             self.soln = self.compute(self.used_pairs)
 
     def naive_method(self):
         self.soln = self.compute(self.pairs)
+    def try_both(self):
+        self.reverse_full()
+        self.is_fullset()
+        fastest = min(self.possible_solutions, key= lambda x: x['total'])
 
 if __name__ == '__main__':
     r = Rover()

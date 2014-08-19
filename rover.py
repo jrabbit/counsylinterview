@@ -4,7 +4,6 @@ import copy
 import itertools
 # from collections import namedtuple
 
-
 # Pair = namedtuple("Pair", ["first", "last"])
 class Rover(object):
     """Organize convience functions and algorithms"""
@@ -60,6 +59,12 @@ class Rover(object):
         # print x
         self.possible_solutions.append(x)
 
+    def union_solved(self, pairs):
+        sets = [set(xrange(x[0], x[1])) for x in pairs]
+        combined = reduce(lambda x,y : x.union(y) ,sets)
+        if set(xrange(0, self.numb_bytes)).issubset(combined):
+            return True
+
     def reverse_full(self):
         """Reversed procedure sorting in reverse finding the shortest path"""
         self.current_match = self.numb_bytes
@@ -69,7 +74,6 @@ class Rover(object):
         def test_sets(permutations, sets):
             """take permutations and sets and combine them
             test for coverage (e.g. 0 - N within the combined set."""
-            skip_list = []
             for i in permutations:
                 # unpack
                 # print sets[i[0]] ^ sets[i[1]]
@@ -82,7 +86,6 @@ class Rover(object):
                 if set(xrange(0, self.numb_bytes)).issubset(f):
                     a,b = min(x), max(x)+1
                     c,d = min(y), max(y)+1
-                    skip_list.append((y, x))
                     yield {"total": self.compute([[a,b], [c,d]]), 
                             "pairs": [[a,b], [c,d]],
                             "group": i}
@@ -101,7 +104,7 @@ class Rover(object):
             # self.soln = min([x for x in test_sets(permutations, sets)], key=lambda x: x['total'] )
             # self.compute()
 
-        def finddiscontiguous(s):
+        def findoverlap(s):
             """only looks for one level."""
             for i, p in enumerate(s):
                 # print p
@@ -110,8 +113,8 @@ class Rover(object):
                     # print s[i]
                     self.used_pairs.append(s[i])
                     s.pop(i)
-                    finddiscontiguous(s)
-        finddiscontiguous(s)
+                    findoverlap(s)
+        findoverlap(s)
         # print self.used_pairs
         contains_0 = [x for x in self.used_pairs if 0 in x]
         if len(contains_0) > 1:

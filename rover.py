@@ -36,7 +36,7 @@ class Rover(object):
         return reduce(operator.add,
                         map(lambda p: self.time(p[1]-p[0]), dl_pairs))
 
-    def is_fullset(self, dl_pairs):
+    def contiguous_search(self, dl_pairs):
         """do the pairs contain the original file?"""
         self.current_match = 0
         self.used_pairs = []
@@ -131,7 +131,7 @@ class Rover(object):
     def try_both(self):
         """Run both algorithms (forwards and reverse with sets)"""
         self.reverse_full()
-        self.is_fullset(self.pairs)
+        self.contiguous_search(self.pairs)
         # print self.possible_solutions
         fastest = min(self.possible_solutions, key=lambda x: x['total'])
         self.soln = fastest['total']

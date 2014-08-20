@@ -2,9 +2,8 @@ import sys
 import operator
 import copy
 import itertools
-# from collections import namedtuple
 
-# Pair = namedtuple("Pair", ["first", "last"])
+
 class Rover(object):
     """Organize convience functions and algorithms"""
     def __init__(self):
@@ -28,7 +27,11 @@ class Rover(object):
 
     def out(self):
         """trigger output"""
-        print '{0:.3f}'.format(self.soln)
+        if self.soln:
+            print '{0:.3f}'.format(self.soln)
+        else:
+            # If it is impossible to reconstruct the file  do not output anything.
+            pass
 
     def compute(self, dl_pairs):
         """calculate time to transfer selected pairs"""
@@ -61,7 +64,7 @@ class Rover(object):
 
     def union_solved(self, pairs):
         sets = [set(xrange(x[0], x[1])) for x in pairs]
-        combined = reduce(lambda x,y : x.union(y) ,sets)
+        combined = reduce(lambda x, y: x.union(y), sets)
         if set(xrange(0, self.numb_bytes)).issubset(combined):
             return True
 
@@ -71,23 +74,24 @@ class Rover(object):
         self.used_pairs = []
         s = sorted(self.pairs, key=lambda x: -x[1])
         self.processed_sets = []
+
         def test_sets(permutations, sets):
             """take permutations and sets and combine them
             test for coverage (e.g. 0 - N within the combined set."""
             for i in permutations:
                 # unpack
                 # print sets[i[0]] ^ sets[i[1]]
-                x, y = sets[i[0]] , sets[i[1]]
+                x, y = sets[i[0]], sets[i[1]]
                 # print i
                 # union of the two sets
                 f = sets[i[0]] | sets[i[1]]
                 # print 0 in f
                 # print (0, self.numb_bytes)
                 if set(xrange(0, self.numb_bytes)).issubset(f):
-                    a,b = min(x), max(x)+1
-                    c,d = min(y), max(y)+1
-                    yield {"total": self.compute([[a,b], [c,d]]), 
-                            "pairs": [[a,b], [c,d]],
+                    a, b = min(x), max(x)+1
+                    c, d = min(y), max(y)+1
+                    yield {"total": self.compute([[a, b], [c, d]]),
+                            "pairs": [[a, b], [c, d]],
                             "group": i}
 
         def mk_set(l):
@@ -99,10 +103,7 @@ class Rover(object):
             results = [x for x in test_sets(permutations, sets)]
             self.possible_solutions += results
             # print "hello", results
-            # self.soln = min(, key=lambda x: x['total'] )
             # print self.soln
-            # self.soln = min([x for x in test_sets(permutations, sets)], key=lambda x: x['total'] )
-            # self.compute()
 
         def findoverlap(s):
             """only looks for one level."""
@@ -118,16 +119,22 @@ class Rover(object):
         # print self.used_pairs
         contains_0 = [x for x in self.used_pairs if 0 in x]
         if len(contains_0) > 1:
-            self.used_pairs.append([0,0])
+            self.used_pairs.append([0, 0])
             mk_set(self.used_pairs)
             # pick a proposed solution based on time
-            fastest = min(self.possible_solutions, key= lambda x: x['total'])
-            self.soln = fastest['total']
+            try:
+                fastest = min(self.possible_solutions, key=lambda x: x['total'])
+                # print fastest
+                self.soln = fastest['total']
+            except ValueError:
+                # for non-solvables. apparently not a testcase :(
+                sys.exit()
         else:
             self.soln = self.compute(self.used_pairs)
 
     def naive_method(self):
         self.soln = self.compute(self.pairs)
+
     def try_both(self):
         """Run both algorithms (forwards and reverse with sets)"""
         self.reverse_full()

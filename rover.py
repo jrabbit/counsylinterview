@@ -60,8 +60,7 @@ class Rover(object):
         # print self.used_pairs
         self.soln = self.compute(self.used_pairs)
         x = {"total": self.compute(self.used_pairs), "pairs": self.used_pairs}
-        print x
-        self.possible_solutions.append(x)
+        return x
 
     def union_solved(self, pairs):
         sets = [set(xrange(x[0], x[1])) for x in pairs]
@@ -81,19 +80,11 @@ class Rover(object):
             test for coverage (e.g. 0 - N within the combined set."""
             for i in permutations:
                 # unpack
-                # print sets[i[0]] ^ sets[i[1]]
                 x, y = sets[i[0]], sets[i[1]]
-                # print i
-                # union of the two sets
-                f = sets[i[0]] | sets[i[1]]
-                # print 0 in f
-                # print (0, self.numb_bytes)
-                if set(xrange(0, self.numb_bytes)).issubset(f):
-                    a, b = min(x), max(x)+1
-                    c, d = min(y), max(y)+1
-                    yield {"total": self.compute([[a, b], [c, d]]),
-                           "pairs": [[a, b], [c, d]],
-                           "group": i}
+                if self.union_solved((x,y)):
+                    yield {"total": self.compute([x,y]),
+                     "pairs": [x,y],
+                     "group": i}
 
         def mk_set(l):
             """process a list of pairs into sets for analysis"""
@@ -101,7 +92,7 @@ class Rover(object):
             for item, x in enumerate(l):
                 sets[item] = set(xrange(x[0], x[1]))
             permutations = itertools.permutations(sets, 2)
-            results = [x for x in test_sets(permutations, sets)]
+            results = [x for x in test_sets(permutations, l)]
             self.possible_solutions += results
             # print "hello", results
             # print self.soln
@@ -140,11 +131,15 @@ class Rover(object):
     def try_both(self):
         """Run both algorithms (forwards and reverse with sets)"""
         self.reverse_full()
-        self.contiguous_search(self.pairs)
+        self.possible_solutions.append(self.contiguous_search(self.pairs))
         # print self.possible_solutions
         fastest = min(self.possible_solutions, key=lambda x: x['total'])
         self.soln = fastest['total']
         self.out()
+
+
+def tests():
+    pass
 
 if __name__ == '__main__':
     r = Rover()

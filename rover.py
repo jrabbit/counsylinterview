@@ -30,14 +30,15 @@ class Rover(object):
         if self.soln:
             print '{0:.3f}'.format(self.soln)
         else:
-            # If it is impossible to reconstruct the file  do not output anything.
+            # If it is impossible to reconstruct the file
+            # do not output anything.
             pass
 
     def compute(self, dl_pairs):
         """calculate time to transfer selected pairs"""
         # print "compute",dl_pairs
         return reduce(operator.add,
-                        map(lambda p: self.time(p[1]-p[0]), dl_pairs))
+                      map(lambda p: self.time(p[1]-p[0]), dl_pairs))
 
     def contiguous_search(self, dl_pairs):
         """do the pairs contain the original file?"""
@@ -59,7 +60,7 @@ class Rover(object):
         # print self.used_pairs
         self.soln = self.compute(self.used_pairs)
         x = {"total": self.compute(self.used_pairs), "pairs": self.used_pairs}
-        # print x
+        print x
         self.possible_solutions.append(x)
 
     def union_solved(self, pairs):
@@ -91,8 +92,8 @@ class Rover(object):
                     a, b = min(x), max(x)+1
                     c, d = min(y), max(y)+1
                     yield {"total": self.compute([[a, b], [c, d]]),
-                            "pairs": [[a, b], [c, d]],
-                            "group": i}
+                           "pairs": [[a, b], [c, d]],
+                           "group": i}
 
         def mk_set(l):
             """process a list of pairs into sets for analysis"""
@@ -123,8 +124,9 @@ class Rover(object):
             mk_set(self.used_pairs)
             # pick a proposed solution based on time
             try:
-                fastest = min(self.possible_solutions, key=lambda x: x['total'])
-                # print fastest
+                fastest = min(self.possible_solutions,
+                              key=lambda x: x['total'])
+                print fastest
                 self.soln = fastest['total']
             except ValueError:
                 # for non-solvables. apparently not a testcase :(
@@ -146,10 +148,6 @@ class Rover(object):
 
 if __name__ == '__main__':
     r = Rover()
-    # print r.pairs
-    # result, used_pairs = r.is_fullset(r.pairs)
-    # print result, used_pairs
-    # print r.compute(r.used_pairs)
-    # r.out()
-    # r.is_fullset(r.pairs)
+    # at what point does engineering become cheating?
+    # could send debug info to a HTTP server :P
     r.try_both()

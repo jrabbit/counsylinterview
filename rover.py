@@ -3,6 +3,13 @@ import operator
 import copy
 import itertools
 
+# Big O Notation goes here
+#
+# Are these two methods comparable to a CS theory type solution?
+# If I restarted this problem I would have started with clojure because
+# it would have let me use lazy sequences to search the full problem space
+# simply. potentially optimizing by grouping/sorting some of the pairs
+
 
 class Rover(object):
     """Organize convience functions and algorithms"""
@@ -63,6 +70,7 @@ class Rover(object):
         return x
 
     def union_solved(self, pairs):
+        """does the list of pairs contain 0-N?"""
         sets = [set(xrange(x[0], x[1])) for x in pairs]
         combined = reduce(lambda x, y: x.union(y), sets)
         if set(xrange(0, self.numb_bytes)).issubset(combined):
@@ -81,10 +89,10 @@ class Rover(object):
             for i in permutations:
                 # unpack
                 x, y = sets[i[0]], sets[i[1]]
-                if self.union_solved((x,y)):
-                    yield {"total": self.compute([x,y]),
-                     "pairs": [x,y],
-                     "group": i}
+                if self.union_solved((x, y)):
+                    yield {"total": self.compute([x, y]),
+                           "pairs": [x, y],
+                           "group": i}
 
         def mk_set(l):
             """process a list of pairs into sets for analysis"""

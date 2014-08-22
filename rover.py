@@ -3,12 +3,30 @@ import operator
 import copy
 import itertools
 
-# Big O Notation goes here
+# There are three algorithms in this file.
+# searched_sets() a giant brute force search.
+# contiguous_search() a search for contiguous pairs.
+# reverse_full() a search that built most of the utility functions
+# for searched_sets() with a limitation of depth of 2.
+# it only does union checking when there's multiple choices.
+# which should be generalizable.
+#
+# searched_sets() is exponential time with heavy memory use.
 #
 # Are these two methods comparable to a CS theory type solution?
+#
+# Potential Improvements.
+# -----------------------
+# The ideal would be to run all of the fast searches first and throw away
+# items in the brute force search that were slower (transfer time)
+# than the times computed cheaply.
+#
+# in likely polynomial time with speedups possible based on memory consumption.
 # If I restarted this problem I would have started with clojure because
 # it would have let me use lazy sequences to search the full problem space
 # simply. potentially optimizing by grouping/sorting some of the pairs
+#
+# also scipy.kd-tree looks relevant.
 
 
 class Rover(object):
@@ -43,28 +61,25 @@ class Rover(object):
 
     def compute(self, dl_pairs):
         """calculate time to transfer selected pairs"""
-        # print "compute",dl_pairs
         return reduce(operator.add,
                       map(lambda p: self.time(p[1]-p[0]), dl_pairs))
 
     def contiguous_search(self, dl_pairs):
-        """do the pairs contain the original file?"""
+        """find potential solution by matching pairs.
+         (biased entirely to small transfer size outcomes"""
         self.current_match = 0
         self.used_pairs = []
         s = sorted(dl_pairs)
 
         def findcontiguous(s):
             for i, p in enumerate(s):
-                # print p[1]
                 if p[0] == self.current_match or p[1] == self.numb_bytes:
                     self.current_match = p[1]
-                    # print s[i]
                     self.used_pairs.append(s[i])
                     s.pop(i)
                     findcontiguous(s)
 
         findcontiguous(s)
-        # print self.used_pairs
         self.soln = self.compute(self.used_pairs)
         x = {"total": self.compute(self.used_pairs), "pairs": self.used_pairs}
         return x
@@ -75,6 +90,30 @@ class Rover(object):
         combined = reduce(lambda x, y: x.union(y), sets)
         if set(xrange(0, self.numb_bytes)).issubset(combined):
             return True
+            del combined
+
+    def slow_search(self):
+        """get all combinations of all pairs"""
+        for group in xrange(1, self.total_chunks+1):
+            yield itertools.combinations(self.pairs, group)
+
+    def searched_sets(self):
+        """absolutely slow way to ensure an answer"""
+        for i in self.slow_search():
+            for l in itertools.imap(self.compute,
+                                    itertools.ifilter(self.union_solved, i)):
+                yield l
+
+    def test_sets(self, permutations, sets):
+        """take permutations and sets and combine them
+        test for coverage (e.g. 0 - N within the combined set."""
+        for i in permutations:
+            # unpack
+            x, y = sets[i[0]], sets[i[1]]
+            if self.union_solved((x, y)):
+                yield {"total": self.compute([x, y]),
+                       "pairs": [x, y],
+                       "group": i}
 
     def reverse_full(self):
         """Reversed procedure sorting in reverse finding the shortest path"""
@@ -83,17 +122,6 @@ class Rover(object):
         s = sorted(self.pairs, key=lambda x: -x[1])
         self.processed_sets = []
 
-        def test_sets(permutations, sets):
-            """take permutations and sets and combine them
-            test for coverage (e.g. 0 - N within the combined set."""
-            for i in permutations:
-                # unpack
-                x, y = sets[i[0]], sets[i[1]]
-                if self.union_solved((x, y)):
-                    yield {"total": self.compute([x, y]),
-                           "pairs": [x, y],
-                           "group": i}
-
         def mk_set(l):
             """process a list of pairs into sets for analysis"""
             sets = {}
@@ -101,22 +129,17 @@ class Rover(object):
                 sets[item] = set(xrange(x[0], x[1]))
             permutations = itertools.permutations(sets, 2)
             results = [x for x in test_sets(permutations, l)]
-            self.possible_solutions += results
-            # print "hello", results
-            # print self.soln
 
         def findoverlap(s):
             """only looks for one level."""
             for i, p in enumerate(s):
-                # print p
                 if p[1] == self.current_match or p[0] == 0:
                     self.current_match = p[0]
-                    # print s[i]
                     self.used_pairs.append(s[i])
                     s.pop(i)
                     findoverlap(s)
+
         findoverlap(s)
-        # print self.used_pairs
         contains_0 = [x for x in self.used_pairs if 0 in x]
         if len(contains_0) > 1:
             self.used_pairs.append([0, 0])
@@ -125,7 +148,6 @@ class Rover(object):
             try:
                 fastest = min(self.possible_solutions,
                               key=lambda x: x['total'])
-                print fastest
                 self.soln = fastest['total']
             except ValueError:
                 # for non-solvables. apparently not a testcase :(
@@ -140,17 +162,14 @@ class Rover(object):
         """Run both algorithms (forwards and reverse with sets)"""
         self.reverse_full()
         self.possible_solutions.append(self.contiguous_search(self.pairs))
-        # print self.possible_solutions
         fastest = min(self.possible_solutions, key=lambda x: x['total'])
         self.soln = fastest['total']
         self.out()
-
-
-def tests():
-    pass
 
 if __name__ == '__main__':
     r = Rover()
     # at what point does engineering become cheating?
     # could send debug info to a HTTP server :P
-    r.try_both()
+    # do brute force for kicks
+    r.soln = min([x for x in r.searched_sets()])
+    r.out()
